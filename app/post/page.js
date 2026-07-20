@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { loadProfile, saveProfile } from "../lib/store";
-import { TopNav, Field, Loading, ResultBlock } from "../lib/ui";
+import { TopNav, Field, Loading, ResultBlock, CardNewsMaker } from "../lib/ui";
 
 const TOPIC_OPTIONS = [
   "우리 원 철학 소개 (입소 안내)",
@@ -102,6 +102,7 @@ export default function PostPage() {
                 <ResultBlock title="복사해서 게시글 맨 아래에 붙이세요" text={hashtagText} />
               </>
             )}
+            <CardNewsMaker source={result.post} centerName={form.centerName} kind="어린이집 소개 게시글" />
           </div>
           <div className="card">
             <div className="btn-row">

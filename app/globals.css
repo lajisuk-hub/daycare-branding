@@ -176,6 +176,19 @@ h2.sec { font-size: 18px; margin-bottom: 6px; }
 .goal-list li:last-child { border-bottom: none; }
 .goal-list li::before { content: "🌱"; position: absolute; left: 0; }
 
+/* 카드뉴스(이미지 게시글) 만들기 */
+.cardnews { margin-top: 22px; padding-top: 18px; border-top: 2px dashed var(--line); }
+.cardnews-help { background: #fff8ec; border: 1px solid #f3e3c3; border-radius: 10px; padding: 12px 14px; font-size: 13.5px; line-height: 1.6; margin-bottom: 14px; }
+.cardnews-page { border: 1px solid var(--line); border-radius: 12px; padding: 14px; margin-bottom: 12px; background: #fff; }
+.cardnews-page-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.cardnews-page-no { background: var(--green); color: #fff; font-size: 13px; font-weight: 700; border-radius: 999px; padding: 3px 11px; }
+.cardnews-page-label { color: var(--gray); font-size: 13px; }
+.copy-line { background: var(--bg); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; }
+.copy-line:last-child { margin-bottom: 0; }
+.copy-line-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+.copy-line-label { font-size: 12.5px; font-weight: 700; color: var(--green); }
+.copy-line-text { white-space: pre-wrap; font-size: 14px; line-height: 1.6; }
+
 /* 프로그램 결과 */
 .prog-grid { display: flex; flex-direction: column; gap: 12px; margin-bottom: 6px; }
 .prog-item { background: var(--bg); border-radius: 12px; padding: 14px 16px; }

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { loadProfile, saveProfile } from "../lib/store";
-import { TopNav, Field, Loading, ResultBlock, NextStepBox } from "../lib/ui";
+import { TopNav, Field, Loading, ResultBlock, NextStepBox, CardNewsMaker } from "../lib/ui";
 
 const EMPTY = {
   centerName: "", philosophy: "", wonHun: "",
@@ -87,6 +87,12 @@ export default function ProgramPage() {
 
             <h3 className="blk-title">전체 소개글</h3>
             <ResultBlock title="복사해서 소개 게시물·안내문·홈페이지에 쓰세요" text={result.introText} />
+
+            <CardNewsMaker
+              source={[result.introText, ...(result.programs || []).map((p) => `${p.name}: ${p.oneLiner}. ${p.description}`)].filter(Boolean).join("\n")}
+              centerName={form.centerName}
+              kind="우리 원 특색 프로그램 소개"
+            />
           </div>
 
           <div className="card">
