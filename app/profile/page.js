@@ -133,7 +133,7 @@ export default function ProfilePage() {
     <div className="wrap">
       <TopNav />
       <div className="header">
-        <h1>📷 1단계 · 인스타 프로필 소개글</h1>
+        <h1>📷 1단계 · 인스타그램 프로필 꾸미기</h1>
         <p>우리 어린이집의 마음이 담긴 프로필 소개글을 만들어 드려요.</p>
       </div>
 
