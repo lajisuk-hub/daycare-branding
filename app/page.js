@@ -47,6 +47,7 @@ export default function Home() {
           <div className="continue-links">
             <Link href="/philosophy">🌱 2단계 보육철학</Link>
             <Link href="/program">🎨 3단계 프로그램</Link>
+            <Link href="/post">✍️ 4단계 게시글 쓰기</Link>
           </div>
         </div>
       )}

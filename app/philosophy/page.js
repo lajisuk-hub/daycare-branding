@@ -113,7 +113,8 @@ export default function PhilosophyPage() {
               <button className="btn ghost" onClick={() => setResult(null)}>답변 고치기</button>
               <button className="btn primary" onClick={generate}>다시 만들기</button>
             </div>
-            <NextStepBox href="/program" label="3단계 · 특색 프로그램 소개로 이어가기 →" />
+            <NextStepBox href="/post" label="✍️ 이 철학으로 인스타 게시글 만들기 →" />
+            <NextStepBox href="/program" label="🎨 3단계 · 특색 프로그램 소개로 이어가기 →" />
           </div>
         </>
       )}
