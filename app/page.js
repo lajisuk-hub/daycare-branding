@@ -2,12 +2,25 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { loadProfile } from "./lib/store";
+import { loadProfile, clearAll, hasAnyContent } from "./lib/store";
 
 export default function Home() {
   const [profile, setProfile] = useState({});
-  useEffect(() => { setProfile(loadProfile()); }, []);
-  const started = !!(profile.centerName || profile.wonHun);
+  const [started, setStarted] = useState(false);
+  useEffect(() => {
+    setProfile(loadProfile());
+    setStarted(hasAnyContent());
+  }, []);
+
+  function handleReset() {
+    const ok = window.confirm(
+      "지금까지 적은 내용을 모두 지우고, 다른 어린이집으로 새로 시작할까요?\n(지운 내용은 되돌릴 수 없어요.)"
+    );
+    if (!ok) return;
+    clearAll();
+    setProfile({});
+    setStarted(false);
+  }
 
   return (
     <div className="wrap">
@@ -37,12 +50,15 @@ export default function Home() {
 
       {started && (
         <div className="continue-row">
-          <span>이미 시작하셨다면 이어서 하기</span>
+          <span>이미 시작하셨다면 이어서 하기 (적으신 내용은 그대로 남아 있어요)</span>
           <div className="continue-links">
             <Link href="/philosophy">🌱 2단계 보육철학</Link>
             <Link href="/program">🎨 3단계 프로그램</Link>
             <Link href="/post">✍️ 4단계 게시글 쓰기</Link>
           </div>
+          <button type="button" className="reset-link" onClick={handleReset}>
+            🆕 다른 어린이집으로 새로 시작 (지금 내용 비우기)
+          </button>
         </div>
       )}
     </div>

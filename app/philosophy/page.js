@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { loadProfile, saveProfile } from "../lib/store";
+import { loadProfile, saveProfile, loadStep, saveStep } from "../lib/store";
 import { TopNav, Field, NextStepBox, Loading, ResultBlock } from "../lib/ui";
 
 const VALUE_OPTIONS = [
@@ -19,15 +19,26 @@ export default function PhilosophyPage() {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState("");
   const [error, setError] = useState("");
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     const p = loadProfile();
+    const saved = loadStep("philosophy");
     setForm((f) => ({
       ...f,
       centerName: p.centerName || f.centerName,
       ageRange: p.ageRange || f.ageRange,
+      ...(saved?.form || {}),
     }));
+    if (saved?.result) setResult(saved.result);
+    setHydrated(true);
   }, []);
+
+  // 적는 대로 자동 저장 (창을 닫거나 새로고침해도 남아 있게)
+  useEffect(() => {
+    if (!hydrated) return;
+    saveStep("philosophy", { form, result });
+  }, [hydrated, form, result]);
 
   function set(k, v) { setForm((f) => ({ ...f, [k]: v })); }
   function toggleValue(v) {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { loadProfile, saveProfile } from "../lib/store";
+import { loadProfile, saveProfile, loadStep, saveStep } from "../lib/store";
 import { TopNav, Field, Loading, ResultBlock, CardNewsMaker } from "../lib/ui";
 
 const TOPIC_OPTIONS = [
@@ -27,9 +27,11 @@ export default function PostPage() {
   const [loading, setLoading] = useState("");
   const [error, setError] = useState("");
   const [carried, setCarried] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     const p = loadProfile();
+    const saved = loadStep("post");
     // 3단계에서 "게시글 만들기"로 넘어오면 프로그램 내용으로 준비
     const fromProgram = typeof window !== "undefined" && window.location.search.includes("src=program");
 
@@ -42,6 +44,7 @@ export default function PostPage() {
         topic: "우리 원 특색 프로그램 소개",
       }));
       setCarried(true);
+      setHydrated(true);
       return;
     }
 
@@ -50,9 +53,18 @@ export default function PostPage() {
       centerName: p.centerName || f.centerName,
       wonHun: p.wonHun || f.wonHun,
       philosophy: p.declaration || p.philosophy || p.shortPhilosophy || f.philosophy,
+      ...(saved?.form || {}),
     }));
+    if (saved?.result) setResult(saved.result);
     if (p.declaration || p.philosophy || p.wonHun) setCarried(true);
+    setHydrated(true);
   }, []);
+
+  // 적는 대로 자동 저장 (창을 닫거나 새로고침해도 남아 있게)
+  useEffect(() => {
+    if (!hydrated) return;
+    saveStep("post", { form, result });
+  }, [hydrated, form, result]);
 
   function set(k, v) { setForm((f) => ({ ...f, [k]: v })); }
 

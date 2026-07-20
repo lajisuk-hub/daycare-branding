@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { loadProfile, saveProfile } from "../lib/store";
+import { loadProfile, saveProfile, loadStep, saveStep } from "../lib/store";
 import { TopNav, Field, Loading, ResultBlock, NextStepBox, CardNewsMaker } from "../lib/ui";
 
 const EMPTY = {
@@ -15,17 +15,28 @@ export default function ProgramPage() {
   const [loading, setLoading] = useState("");
   const [error, setError] = useState("");
   const [carried, setCarried] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     const p = loadProfile();
+    const saved = loadStep("program");
     setForm((f) => ({
       ...f,
       centerName: p.centerName || f.centerName,
       philosophy: p.philosophy || f.philosophy,
       wonHun: p.wonHun || f.wonHun,
+      ...(saved?.form || {}),
     }));
+    if (saved?.result) setResult(saved.result);
     if (p.philosophy || p.wonHun) setCarried(true);
+    setHydrated(true);
   }, []);
+
+  // 적는 대로 자동 저장 (창을 닫거나 새로고침해도 남아 있게)
+  useEffect(() => {
+    if (!hydrated) return;
+    saveStep("program", { form, result });
+  }, [hydrated, form, result]);
 
   function set(k, v) { setForm((f) => ({ ...f, [k]: v })); }
 

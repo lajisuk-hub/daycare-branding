@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { loadProfile, saveProfile } from "../lib/store";
+import { loadProfile, saveProfile, loadStep, saveStep } from "../lib/store";
 import { TopNav, Field, NextStepBox, ResultBlock } from "../lib/ui";
 
 const FEATURE_OPTIONS = [
@@ -32,11 +32,13 @@ export default function ProfilePage() {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState("");
   const [error, setError] = useState("");
+  const [hydrated, setHydrated] = useState(false);
   const fileRef = useRef(null);
 
-  // 앞 단계에서 이어진 정보 미리 채우기
+  // 앞 단계에서 이어진 정보 + 이전에 이 단계에서 적어둔 내용 불러오기
   useEffect(() => {
     const p = loadProfile();
+    const saved = loadStep("profile");
     setForm((f) => ({
       ...f,
       centerName: p.centerName || f.centerName,
@@ -45,8 +47,19 @@ export default function ProfilePage() {
       location: p.location || f.location,
       contact: p.contact || f.contact,
       features: Array.isArray(p.features) ? p.features : f.features,
+      ...(saved?.form || {}),
     }));
+    if (saved?.analysis) setAnalysis(saved.analysis);
+    if (saved?.result) setResult(saved.result);
+    if (saved?.step) setStep(saved.step);
+    setHydrated(true);
   }, []);
+
+  // 적는 대로 자동 저장 (창을 닫거나 새로고침해도 남아 있게)
+  useEffect(() => {
+    if (!hydrated) return;
+    saveStep("profile", { form, result, analysis, step });
+  }, [hydrated, form, result, analysis, step]);
 
   function set(k, v) { setForm((f) => ({ ...f, [k]: v })); }
   function toggleFeature(f) {
