@@ -1,35 +1,8 @@
 // 특색 프로그램 인터뷰 답변 → 우리 원 프로그램 소개글 생성
 // 필요한 환경변수: ANTHROPIC_API_KEY
+import { callClaudeJson } from '../../lib/ai';
 
 export const maxDuration = 60;
-
-function parseAiJson(raw) {
-  const m = raw.match(/\{[\s\S]*\}/);
-  if (!m) throw new Error('AI 응답에서 결과를 찾지 못했습니다');
-  const text = m[0];
-  try { return JSON.parse(text); } catch (e) { /* 보정 후 재시도 */ }
-  return JSON.parse(repairAiJson(text));
-}
-function repairAiJson(s) {
-  let out = ''; let inStr = false;
-  for (let i = 0; i < s.length; i++) {
-    const c = s[i];
-    if (!inStr) { if (c === '"') inStr = true; out += c; continue; }
-    if (c === '\\') { out += c + (s[i + 1] || ''); i++; continue; }
-    if (c === '\n') { out += '\\n'; continue; }
-    if (c === '\r') { out += '\\r'; continue; }
-    if (c === '\t') { out += '\\t'; continue; }
-    if (c === '"') {
-      let j = i + 1; while (j < s.length && /\s/.test(s[j])) j++;
-      const n = s[j];
-      if (n === ',' || n === '}' || n === ']' || n === ':' || j >= s.length) { inStr = false; out += c; }
-      else out += '\\"';
-      continue;
-    }
-    out += c;
-  }
-  return out;
-}
 
 const SYSTEM = `당신은 어린이집의 특색 프로그램(자랑하는 활동)을 부모와 예비 학부모에게 매력적으로 소개하는 글을 써 주는 카피라이터입니다.
 따뜻하고 신뢰가 느껴지는 존댓말로 씁니다.
@@ -47,7 +20,7 @@ const SYSTEM = `당신은 어린이집의 특색 프로그램(자랑하는 활�
 - 어린이집의 보육철학이 주어지면, 프로그램이 그 철학과 어떻게 이어지는지 자연스럽게 녹입니다.
 - 큰따옴표(")는 절대 사용하지 않습니다. 과장된 홍보 문구는 피하고 진정성 있게 씁니다.
 
-반드시 아래 JSON 하나만 출력합니다. 다른 말은 쓰지 않습니다.
+당신의 응답 전체는 여는 중괄호로 시작해 닫는 중괄호로 끝나는 JSON 하나여야 합니다. 인사말·설명·코드블록을 붙이지 마세요.
 {
   "programs": [
     { "name": "프로그램 이름", "emoji": "어울리는 이모지 1개", "oneLiner": "한 줄 소개", "description": "2~3문장 소개. 어떻게 진행되고 아이에게 무엇이 좋은지" }
@@ -59,8 +32,6 @@ const SYSTEM = `당신은 어린이집의 특색 프로그램(자랑하는 활�
 export async function POST(req) {
   try {
     const a = await req.json();
-    if (!process.env.ANTHROPIC_API_KEY) return json({ error: '서버에 AI 열쇠(ANTHROPIC_API_KEY)가 설정되지 않았습니다.' }, 500);
-
     const info = [
       `어린이집 이름/지역: ${a.centerName || '(미입력)'}`,
       `우리 원 보육철학(있으면 프로그램에 녹여 주세요): ${a.philosophy || '(미입력)'}`,
@@ -71,32 +42,14 @@ export async function POST(req) {
       `꼭 강조하고 싶은 점: ${a.extra || '(미입력)'}`,
     ].join('\n');
 
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': process.env.ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-5',
-        max_tokens: 2500,
-        thinking: { type: 'disabled' },
-        system: SYSTEM,
-        messages: [{ role: 'user', content: `다음 정보로 우리 어린이집 특색 프로그램 소개글을 만들어 주세요.\n\n${info}` }],
-      }),
+    const parsed = await callClaudeJson({
+      system: SYSTEM,
+      userContent: `다음 정보로 우리 어린이집 특색 프로그램 소개글을 만들어 주세요.\n\n${info}`,
+      maxTokens: 2500,
     });
-
-    if (!res.ok) {
-      const t = await res.text();
-      return json({ error: 'AI 작성 요청이 실패했습니다.', detail: t.slice(0, 400) }, 502);
-    }
-    const data = await res.json();
-    const raw = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n');
-    const parsed = parseAiJson(raw);
     return json(parsed);
   } catch (e) {
-    return json({ error: '작성 중 문제가 생겼습니다: ' + (e.message || '알 수 없는 오류') }, 500);
+    return json({ error: (e.noKey ? '' : '프로그램 소개글 작성 중 문제가 생겼습니다: ') + (e.message || '알 수 없는 오류') }, 500);
   }
 }
 

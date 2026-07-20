@@ -1,35 +1,8 @@
 // 인터뷰 답변 → 어린이집 인스타 프로필 소개글(짧은 버전 + 긴 버전) 생성
 // 필요한 환경변수: ANTHROPIC_API_KEY
+import { callClaudeJson } from '../../lib/ai';
 
 export const maxDuration = 60;
-
-function parseAiJson(raw) {
-  const m = raw.match(/\{[\s\S]*\}/);
-  if (!m) throw new Error('AI 응답에서 결과를 찾지 못했습니다');
-  const text = m[0];
-  try { return JSON.parse(text); } catch (e) { /* 보정 후 재시도 */ }
-  return JSON.parse(repairAiJson(text));
-}
-function repairAiJson(s) {
-  let out = ''; let inStr = false;
-  for (let i = 0; i < s.length; i++) {
-    const c = s[i];
-    if (!inStr) { if (c === '"') inStr = true; out += c; continue; }
-    if (c === '\\') { out += c + (s[i + 1] || ''); i++; continue; }
-    if (c === '\n') { out += '\\n'; continue; }
-    if (c === '\r') { out += '\\r'; continue; }
-    if (c === '\t') { out += '\\t'; continue; }
-    if (c === '"') {
-      let j = i + 1; while (j < s.length && /\s/.test(s[j])) j++;
-      const n = s[j];
-      if (n === ',' || n === '}' || n === ']' || n === ':' || j >= s.length) { inStr = false; out += c; }
-      else out += '\\"';
-      continue;
-    }
-    out += c;
-  }
-  return out;
-}
 
 const SYSTEM = `당신은 어린이집 인스타그램 프로필(소개글)을 써 주는 따뜻한 브랜딩 카피라이터입니다.
 
@@ -51,7 +24,7 @@ const SYSTEM = `당신은 어린이집 인스타그램 프로필(소개글)을 �
 - shortBio: 인스타그램 프로필 소개칸용. 공백 포함 150자 이내로 아주 압축. 이름줄 캐치프레이즈 + 이모지 불릿 3~4개 정도.
 - longBio: 게시물이나 소개 페이지용. 캐치프레이즈 + 이모지 불릿 5~7개 + 연령/위치/연락처. 한올어린이집처럼 교육관이 잘 드러나게 조금 더 풍성하게.
 
-반드시 아래 JSON 하나만 출력합니다. 다른 말은 쓰지 않습니다.
+당신의 응답 전체는 여는 중괄호로 시작해 닫는 중괄호로 끝나는 JSON 하나여야 합니다. 인사말·설명·코드블록을 붙이지 마세요.
 {
   "shortBio": "짧은 버전 (줄바꿈 포함)",
   "longBio": "긴 버전 (줄바꿈 포함)",
@@ -61,8 +34,6 @@ const SYSTEM = `당신은 어린이집 인스타그램 프로필(소개글)을 �
 export async function POST(req) {
   try {
     const a = await req.json();
-    if (!process.env.ANTHROPIC_API_KEY) return json({ error: '서버에 AI 열쇠(ANTHROPIC_API_KEY)가 설정되지 않았습니다.' }, 500);
-
     const info = [
       `어린이집 이름/지역: ${a.centerName || '(미입력)'}`,
       `다니는 연령: ${a.ageRange || '(미입력)'}`,
@@ -75,32 +46,14 @@ export async function POST(req) {
       `연락처·상담 링크: ${a.contact || '(미입력)'}`,
     ].join('\n');
 
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': process.env.ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-5',
-        max_tokens: 2000,
-        thinking: { type: 'disabled' },
-        system: SYSTEM,
-        messages: [{ role: 'user', content: `다음 정보로 어린이집 프로필 소개글을 만들어 주세요.\n\n${info}` }],
-      }),
+    const parsed = await callClaudeJson({
+      system: SYSTEM,
+      userContent: `다음 정보로 어린이집 프로필 소개글을 만들어 주세요.\n\n${info}`,
+      maxTokens: 2000,
     });
-
-    if (!res.ok) {
-      const t = await res.text();
-      return json({ error: 'AI 작성 요청이 실패했습니다.', detail: t.slice(0, 400) }, 502);
-    }
-    const data = await res.json();
-    const raw = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n');
-    const parsed = parseAiJson(raw);
     return json(parsed);
   } catch (e) {
-    return json({ error: '작성 중 문제가 생겼습니다: ' + (e.message || '알 수 없는 오류') }, 500);
+    return json({ error: (e.noKey ? '' : '소개글 작성 중 문제가 생겼습니다: ') + (e.message || '알 수 없는 오류') }, 500);
   }
 }
 
