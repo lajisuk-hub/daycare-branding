@@ -1,11 +1,27 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 
+const NAV = [
+  { href: "/", label: "🏠 홈" },
+  { href: "/profile", label: "1. 프로필" },
+  { href: "/philosophy", label: "2. 보육철학" },
+  { href: "/program", label: "3. 프로그램" },
+  { href: "/post", label: "4. 게시글" },
+];
+
 export function TopNav() {
+  const path = usePathname();
   return (
-    <div className="topnav"><Link href="/" className="home-link">← 홈으로</Link></div>
+    <nav className="stagenav">
+      {NAV.map((n) => (
+        <Link key={n.href} href={n.href} className={"stagenav-link" + (path === n.href ? " active" : "")}>
+          {n.label}
+        </Link>
+      ))}
+    </nav>
   );
 }
 
@@ -91,8 +107,8 @@ export function CardNewsMaker({ source, centerName, kind }) {
       <p className="desc">위 내용을 여러 장의 이미지로 만들 수 있게, 장(페이지)별로 나눠 드려요. 각 장의 문구와 이미지 프롬프트를 복사해 쓰세요.</p>
 
       {!data && (
-        <button className="btn ghost" onClick={make} disabled={loading}>
-          {loading ? "장별로 나누는 중…" : "🖼️ 페이지별 이미지 프롬프트 만들기"}
+        <button className="btn primary" onClick={make} disabled={loading}>
+          {loading ? "장별로 나누는 중…" : "🖼️ 페이지별로 나눠서 이미지 프롬프트 만들기"}
         </button>
       )}
       {error && <div className="err">{error}</div>}

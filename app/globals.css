@@ -146,10 +146,20 @@ h2.sec { font-size: 18px; margin-bottom: 6px; }
 .stage-desc { font-size: 13.5px; color: var(--gray); line-height: 1.55; }
 .stage-arrow { font-size: 22px; color: #bcc7c0; flex-shrink: 0; }
 
-/* 상단 네비 */
-.topnav { margin-bottom: 4px; }
-.home-link { color: var(--green); text-decoration: none; font-size: 14px; font-weight: 700; }
-.home-link:hover { text-decoration: underline; }
+/* 상단 단계 이동 네비 */
+.stagenav {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; gap: 6px; flex-wrap: wrap; justify-content: center;
+  background: rgba(247,249,248,0.95); backdrop-filter: blur(6px);
+  padding: 10px 4px; margin: -8px -4px 12px; border-bottom: 1px solid var(--line);
+}
+.stagenav-link {
+  text-decoration: none; color: var(--gray); font-size: 13px; font-weight: 700;
+  background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px;
+  white-space: nowrap;
+}
+.stagenav-link:hover { border-color: var(--green); color: var(--green); }
+.stagenav-link.active { background: var(--green); color: #fff; border-color: var(--green); }
 
 /* 다음 단계 유도 버튼 */
 .next-step {
