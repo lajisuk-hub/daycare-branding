@@ -6,6 +6,7 @@ import { TopNav, Field, Loading, ResultBlock } from "../lib/ui";
 
 const TOPIC_OPTIONS = [
   "우리 원 철학 소개 (입소 안내)",
+  "우리 원 특색 프로그램 소개",
   "우리 아이들의 놀이 이야기",
   "우리 원의 하루",
   "계절·자연 이야기",
@@ -29,6 +30,21 @@ export default function PostPage() {
 
   useEffect(() => {
     const p = loadProfile();
+    // 3단계에서 "게시글 만들기"로 넘어오면 프로그램 내용으로 준비
+    const fromProgram = typeof window !== "undefined" && window.location.search.includes("src=program");
+
+    if (fromProgram && p.programsText) {
+      setForm((f) => ({
+        ...f,
+        centerName: p.centerName || f.centerName,
+        wonHun: p.wonHun || f.wonHun,
+        philosophy: p.programsText,
+        topic: "우리 원 특색 프로그램 소개",
+      }));
+      setCarried(true);
+      return;
+    }
+
     setForm((f) => ({
       ...f,
       centerName: p.centerName || f.centerName,
@@ -106,7 +122,9 @@ export default function PostPage() {
 
           {carried && (
             <div className="tag-good" style={{ marginBottom: 16 }}>
-              2단계 보육철학을 이어받았어요. 이 내용을 바탕으로 게시글을 씁니다.
+              {form.topic === "우리 원 특색 프로그램 소개"
+                ? "3단계 특색 프로그램 내용을 이어받았어요. 이 내용을 게시글로 풀어 드립니다."
+                : "2단계 보육철학을 이어받았어요. 이 내용을 바탕으로 게시글을 씁니다."}
             </div>
           )}
 
@@ -114,7 +132,7 @@ export default function PostPage() {
             <input type="text" value={form.centerName} onChange={(e) => set("centerName", e.target.value)} placeholder="예) 부산 남구 공동육아 꿈샘어린이집" />
           </Field>
 
-          <Field label="게시글의 바탕이 될 보육철학·전하고 싶은 내용" hint="핵심">
+          <Field label="게시글의 바탕이 될 내용 (보육철학·프로그램 등)" hint="핵심">
             <textarea style={{ minHeight: 140 }} value={form.philosophy} onChange={(e) => set("philosophy", e.target.value)} placeholder="예) 아이를 빨리 가르쳐야 할 대상으로 보지 않습니다. 아이마다 속도와 방식이 다르다고 믿고, 먼저 바라보고 기다립니다. 빠른 학습보다 충분한 놀이를, 성과보다 아이의 속도를 소중히 여깁니다." />
           </Field>
 

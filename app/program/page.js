@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { loadProfile, saveProfile } from "../lib/store";
-import { TopNav, Field, Loading, ResultBlock } from "../lib/ui";
+import { TopNav, Field, Loading, ResultBlock, NextStepBox } from "../lib/ui";
 
 const EMPTY = {
   centerName: "", philosophy: "", wonHun: "",
@@ -43,7 +43,12 @@ export default function ProgramPage() {
       const data = await res.json();
       if (!res.ok || data.error) throw new Error(data.error || "작성 실패");
       setResult(data);
-      saveProfile({ centerName: form.centerName });
+      // 4단계 게시글에서 쓰도록 프로그램 내용 저장
+      const programsText = [
+        data.introText,
+        ...(data.programs || []).map((p) => `- ${p.name}: ${p.oneLiner}. ${p.description}`),
+      ].filter(Boolean).join("\n");
+      saveProfile({ centerName: form.centerName, programsText, programNames: form.programNames });
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (e) {
       setError(e.message || "작성 중 문제가 생겼어요.");
@@ -89,8 +94,9 @@ export default function ProgramPage() {
               <button className="btn ghost" onClick={() => setResult(null)}>답변 고치기</button>
               <button className="btn primary" onClick={generate}>다시 만들기</button>
             </div>
+            <NextStepBox href="/post?src=program" label="✍️ 이 프로그램으로 인스타 게시글 만들기 →" />
             <div className="done-box">
-              🌷 세 단계를 모두 마치셨어요! 홈에서 언제든 각 단계를 다시 열어 다듬을 수 있어요.
+              🌷 홈에서 언제든 각 단계를 다시 열어 다듬을 수 있어요.
             </div>
           </div>
         </>
