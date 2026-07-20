@@ -30,12 +30,6 @@ export default function Home() {
         <div className="stage-arrow">→</div>
       </Link>
 
-      {started && profile.centerName && (
-        <div className="card" style={{ padding: "14px 18px", textAlign: "center" }}>
-          지금 <b>{profile.centerName}</b> 브랜딩을 만들고 있어요 🌱
-        </div>
-      )}
-
       <div className="footnote">
         프로필을 완성하면 <b>2단계 보육철학</b>, <b>3단계 특색 프로그램</b>으로 자연스럽게 이어져요.<br />
         한 단계씩 차근차근 하시면 가장 잘 어울리는 브랜딩이 됩니다 🌷
